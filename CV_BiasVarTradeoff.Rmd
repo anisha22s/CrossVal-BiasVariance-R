@@ -1,0 +1,639 @@
+---
+title: "BAX442 HW3"
+output: html_document
+date: "2023-02-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+##CROSS VALIDATION 
+
+
+```{r , echo=TRUE}
+library(stats)
+##CROSS VALIDATION
+#1 construction dataset
+n <- 10000
+X <- runif(n, min = 0, max = 1) #Each sample point Xi is sampled from the uniform distribution
+
+X_5 <- X^5
+X_2 <- X^2
+error <- rnorm(n, mean = 0, sd = 0.5) #Each εi is sampled independently from the N(0,0.5)
+Y <- 3 * X_5 + 2 * X_2 + error
+
+#2 Splitting the dataset into 80% train and 20% test
+set.seed(5) #seed for reproducibility
+
+indices <- sample(1:n, size = n, replace = FALSE)
+train_indices <- indices[1:floor(0.8 * n)]
+test_indices <- indices[(floor(0.8 * n) + 1):n]
+
+X_train <- X[train_indices]
+Y_train <- Y[train_indices]
+X_test <- X[test_indices]
+Y_test <- Y[test_indices]
+
+
+```
+
+
+
+```{r}
+#Five fold cross validation
+
+##OBJECTIVE: estimate the MSE error on each fold for a model that has been trained on the remaining 4 folds.
+#The cross validation (CV) error for the training set would be the average MSE across all five folds. 
+
+#plot the CV error as a function of d for d ∈[1,2,...,10]
+
+#we will start by creating a dataframe of the training set
+data <- data.frame(X_train, Y_train)
+
+#To make sure that each train bucket is unique each times, we will divide the dataset randomly by adding a column randomly ordered numbers
+data$random <- sample(nrow(data), size = nrow(data), replace = FALSE)
+nrow(data)/5
+
+
+#we need to split the data into five parts
+#We will start by creating the first subset of test data where randomly assigned numbers are from 1 to 160
+
+###FOLD 1####
+Test1 <- subset(data, random >= 1 & random <= 1600)
+Train1 <- setdiff(data, Test1) #Training test will be the entire data - Test1 subset. Not that the entire dataset here is only the training set from question 2 as defined by the variable data 
+
+###FOLD 2####
+Test2 <- subset(data, random >= 1601 & random <= 3200)
+Train2 <- setdiff(data, Test2) 
+
+###FOLD 3####
+Test3 <- subset(data, random >= 3201 & random <= 4800)
+Train3 <- setdiff(data, Test3) 
+
+###FOLD 4####
+Test4 <- subset(data, random >= 4801 & random <= 6400)
+Train4 <- setdiff(data, Test4) 
+
+###FOLD 5####
+Test5 <- subset(data, random >= 6401 & random <= 8000)
+Train5 <- setdiff(data, Test5) 
+
+#Next, we will perform regressions for each fold to select the optimal d
+###D=1####
+#Fold 1
+fit1D1 <- lm(Y_train ~ poly(X_train, 1), data = Train1) # Generate a polynomial model with degree 1
+prediction11 <- predict(fit1D1, Test1) # Use the model to make predictions on the test data
+MSEFOLD1D1 <- mean((Test1$Y_train - prediction11)^2) ##for clarification, here Test1$Y_train is the actual Y from test set 1. The name "Y_train" is because this test set has been derived from the trainng set from question 2, hence the name which we have not changed.
+
+#Fold 2
+fit2D1 <- lm(Y_train ~ poly(X_train, 1), data = Train2) 
+prediction21 <- predict(fit2D1, Test2) 
+MSEFOLD2D1 <- mean((Test2$Y_train - prediction21)^2) 
+
+#Fold 3
+fit3D1 <- lm(Y_train ~ poly(X_train, 1), data = Train3) 
+prediction31 <- predict(fit3D1, Test3) 
+MSEFOLD3D1 <- mean((Test3$Y_train - prediction31)^2) 
+
+#Fold 4
+fit4D1 <- lm(Y_train ~ poly(X_train, 1), data = Train4) 
+prediction41 <- predict(fit4D1, Test4) 
+MSEFOLD4D1 <- mean((Test4$Y_train - prediction41)^2) 
+
+#Fold 5
+fit5D1 <- lm(Y_train ~ poly(X_train, 1), data = Train5) 
+prediction51 <- predict(fit5D1, Test5) 
+MSEFOLD5D1 <- mean((Test5$Y_train - prediction51)^2) 
+
+AVG_MSE_D1 <- mean(MSEFOLD1D1+ MSEFOLD2D1+ MSEFOLD3D1+ MSEFOLD4D1+ MSEFOLD5D1)
+
+
+##WE WILL REPEAT ALL STEPS ABOVE TO PERFORM 5 FOLD CV'S FOR D =2,3,4,5,6,7,8,9,10
+###D=2####
+#Fold 1
+fit1D2 <- lm(Y_train ~ poly(X_train, 2), data = Train1) 
+prediction12 <- predict(fit1D2, Test1)
+MSEFOLD1D2 <- mean((Test1$Y_train - prediction12)^2) 
+
+#Fold 2
+fit2D2 <- lm(Y_train ~ poly(X_train, 2), data = Train2) 
+prediction22 <- predict(fit2D2, Test2) 
+MSEFOLD2D2 <- mean((Test2$Y_train - prediction22)^2) 
+
+#Fold 3
+fit3D2 <- lm(Y_train ~ poly(X_train, 2), data = Train3) 
+prediction32 <- predict(fit3D2, Test3) 
+MSEFOLD3D2 <- mean((Test3$Y_train - prediction32)^2) 
+
+#Fold 4
+fit4D2 <- lm(Y_train ~ poly(X_train, 2), data = Train4) 
+prediction42 <- predict(fit4D2, Test4) 
+MSEFOLD4D2 <- mean((Test4$Y_train - prediction42)^2) 
+
+#Fold 5
+fit5D2 <- lm(Y_train ~ poly(X_train, 2), data = Train5) 
+prediction52 <- predict(fit5D2, Test5) 
+MSEFOLD5D2 <- mean((Test5$Y_train - prediction52)^2) 
+
+AVG_MSE_D2 <- mean(MSEFOLD1D2+ MSEFOLD2D2+ MSEFOLD3D2+ MSEFOLD4D2+ MSEFOLD5D2)
+
+
+###D=3####
+#Fold 1
+fit1D3 <- lm(Y_train ~ poly(X_train, 3), data = Train1) 
+prediction13 <- predict(fit1D3, Test1)
+MSEFOLD1D3 <- mean((Test1$Y_train - prediction13)^2) 
+
+#Fold 2
+fit2D3 <- lm(Y_train ~ poly(X_train, 3), data = Train2) 
+prediction23 <- predict(fit2D3, Test2) 
+MSEFOLD2D3 <- mean((Test2$Y_train - prediction23)^2) 
+
+#Fold 3
+fit3D3 <- lm(Y_train ~ poly(X_train, 3), data = Train3) 
+prediction33 <- predict(fit3D3, Test3) 
+MSEFOLD3D3 <- mean((Test3$Y_train - prediction33)^2) 
+
+#Fold 4
+fit4D3 <- lm(Y_train ~ poly(X_train, 3), data = Train4) 
+prediction43 <- predict(fit4D3, Test4) 
+MSEFOLD4D3 <- mean((Test4$Y_train - prediction43)^2) 
+
+#Fold 5
+fit5D3 <- lm(Y_train ~ poly(X_train, 3), data = Train5) 
+prediction53 <- predict(fit5D3, Test5) 
+MSEFOLD5D3 <- mean((Test5$Y_train - prediction53)^2) 
+
+AVG_MSE_D3 <- mean(MSEFOLD1D3+ MSEFOLD2D3+ MSEFOLD3D3+ MSEFOLD4D3+ MSEFOLD5D3)
+
+###D=4####
+#Fold 1
+fit1D4 <- lm(Y_train ~ poly(X_train, 4), data = Train1) 
+prediction14 <- predict(fit1D4, Test1)
+MSEFOLD1D4 <- mean((Test1$Y_train - prediction14)^2) 
+
+#Fold 2
+fit2D4 <- lm(Y_train ~ poly(X_train, 4), data = Train2) 
+prediction24 <- predict(fit2D4, Test2) 
+MSEFOLD2D4 <- mean((Test2$Y_train - prediction24)^2) 
+
+#Fold 3
+fit3D4 <- lm(Y_train ~ poly(X_train, 4), data = Train3) 
+prediction34 <- predict(fit3D4, Test3) 
+MSEFOLD3D4 <- mean((Test3$Y_train - prediction34)^2) 
+
+#Fold 4
+fit4D4 <- lm(Y_train ~ poly(X_train, 4), data = Train4) 
+prediction44 <- predict(fit4D4, Test4) 
+MSEFOLD4D4 <- mean((Test4$Y_train - prediction44)^2) 
+
+#Fold 5
+fit5D4 <- lm(Y_train ~ poly(X_train, 4), data = Train5) 
+prediction54 <- predict(fit5D4, Test5) 
+MSEFOLD5D4 <- mean((Test5$Y_train - prediction54)^2) 
+
+AVG_MSE_D4 <- mean(MSEFOLD1D4+ MSEFOLD2D4+ MSEFOLD3D4+ MSEFOLD4D4+ MSEFOLD5D4)
+
+
+###D=5####
+#Fold 1
+fit1D5 <- lm(Y_train ~ poly(X_train, 5), data = Train1) 
+prediction15 <- predict(fit1D5, Test1)
+MSEFOLD1D5 <- mean((Test1$Y_train - prediction15)^2) 
+
+#Fold 2
+fit2D5 <- lm(Y_train ~ poly(X_train, 5), data = Train2) 
+prediction25 <- predict(fit2D5, Test2) 
+MSEFOLD2D5 <- mean((Test2$Y_train - prediction25)^2) 
+
+#Fold 3
+fit3D5 <- lm(Y_train ~ poly(X_train, 5), data = Train3) 
+prediction35 <- predict(fit3D5, Test3) 
+MSEFOLD3D5 <- mean((Test3$Y_train - prediction35)^2) 
+
+#Fold 4
+fit4D5 <- lm(Y_train ~ poly(X_train, 5), data = Train4) 
+prediction45 <- predict(fit4D5, Test4) 
+MSEFOLD4D5 <- mean((Test4$Y_train - prediction45)^2) 
+
+#Fold 5
+fit5D5 <- lm(Y_train ~ poly(X_train, 5), data = Train5) 
+prediction55 <- predict(fit5D5, Test5) 
+MSEFOLD5D5 <- mean((Test5$Y_train - prediction55)^2) 
+
+AVG_MSE_D5 <- mean(MSEFOLD1D5+ MSEFOLD2D5+ MSEFOLD3D5+ MSEFOLD4D5+ MSEFOLD5D5)
+
+###D=6####
+#Fold 1
+fit1D6 <- lm(Y_train ~ poly(X_train, 6), data = Train1) 
+prediction16 <- predict(fit1D6, Test1)
+MSEFOLD1D6 <- mean((Test1$Y_train - prediction16)^2) 
+
+#Fold 2
+fit2D6  <- lm(Y_train ~ poly(X_train, 6), data = Train2) 
+prediction26 <- predict(fit2D6, Test2) 
+MSEFOLD2D6 <- mean((Test2$Y_train - prediction26)^2) 
+
+#Fold 3
+fit3D6 <- lm(Y_train ~ poly(X_train, 6), data = Train3) 
+prediction36 <- predict(fit3D6, Test3) 
+MSEFOLD3D6 <- mean((Test3$Y_train - prediction36)^2) 
+
+#Fold 4
+fit4D6 <- lm(Y_train ~ poly(X_train, 6), data = Train4) 
+prediction46 <- predict(fit4D6, Test4) 
+MSEFOLD4D6 <- mean((Test4$Y_train - prediction46)^2) 
+
+#Fold 5
+fit5D6 <- lm(Y_train ~ poly(X_train, 6), data = Train5) 
+prediction56 <- predict(fit5D6, Test5) 
+MSEFOLD5D6 <- mean((Test5$Y_train - prediction56)^2) 
+
+AVG_MSE_D6 <- mean(MSEFOLD1D6+ MSEFOLD2D6+ MSEFOLD3D6+ MSEFOLD4D6+ MSEFOLD5D6)
+
+###D=7####
+#Fold 1
+fit1D7 <- lm(Y_train ~ poly(X_train, 7), data = Train1) 
+prediction17 <- predict(fit1D7, Test1)
+MSEFOLD1D7 <- mean((Test1$Y_train - prediction17)^2) 
+
+#Fold 2
+fit2D7 <- lm(Y_train ~ poly(X_train, 7), data = Train2) 
+prediction27 <- predict(fit2D7, Test2) 
+MSEFOLD2D7 <- mean((Test2$Y_train - prediction27)^2) 
+
+#Fold 3
+fit3D7 <- lm(Y_train ~ poly(X_train, 7), data = Train3) 
+prediction37 <- predict(fit3D7, Test3) 
+MSEFOLD3D7 <- mean((Test3$Y_train - prediction37)^2) 
+
+#Fold 4
+fit4D7 <- lm(Y_train ~ poly(X_train, 7), data = Train4) 
+prediction47 <- predict(fit4D7, Test4) 
+MSEFOLD4D7 <- mean((Test4$Y_train - prediction47)^2) 
+
+#Fold 5
+fit5D7 <- lm(Y_train ~ poly(X_train, 7), data = Train5) 
+prediction57 <- predict(fit5D7, Test5) 
+MSEFOLD5D7 <- mean((Test5$Y_train - prediction57)^2) 
+
+AVG_MSE_D7 <- mean(MSEFOLD1D7+ MSEFOLD2D7+ MSEFOLD3D7+ MSEFOLD4D7+ MSEFOLD5D7)
+
+###D=8####
+#Fold 1
+fit1D8 <- lm(Y_train ~ poly(X_train, 8), data = Train1) 
+prediction18 <- predict(fit1D8, Test1)
+MSEFOLD1D8 <- mean((Test1$Y_train - prediction18)^2) 
+
+#Fold 2
+fit2D8 <- lm(Y_train ~ poly(X_train, 8), data = Train2) 
+prediction28 <- predict(fit2D8, Test2) 
+MSEFOLD2D8 <- mean((Test2$Y_train - prediction28)^2) 
+
+#Fold 3
+fit3D8 <- lm(Y_train ~ poly(X_train, 8), data = Train3) 
+prediction38 <- predict(fit3D8, Test3) 
+MSEFOLD3D8 <- mean((Test3$Y_train - prediction38)^2) 
+
+#Fold 4
+fit4D8 <- lm(Y_train ~ poly(X_train, 8), data = Train4) 
+prediction48 <- predict(fit4D8, Test4) 
+MSEFOLD4D8 <- mean((Test4$Y_train - prediction48)^2) 
+
+#Fold 5
+fit5D8 <- lm(Y_train ~ poly(X_train, 8), data = Train5) 
+prediction58 <- predict(fit5D8, Test5) 
+MSEFOLD5D8 <- mean((Test5$Y_train - prediction58)^2) 
+
+AVG_MSE_D8 <- mean(MSEFOLD1D8+ MSEFOLD2D8+ MSEFOLD3D8+ MSEFOLD4D8+ MSEFOLD5D8)
+
+###D=9####
+#Fold 1
+fit1D9 <- lm(Y_train ~ poly(X_train, 9), data = Train1) 
+prediction19 <- predict(fit1D9, Test1)
+MSEFOLD1D9 <- mean((Test1$Y_train - prediction19)^2) 
+
+#Fold 2
+fit2D9 <- lm(Y_train ~ poly(X_train, 9), data = Train2) 
+prediction29 <- predict(fit2D9, Test2) 
+MSEFOLD2D9 <- mean((Test2$Y_train - prediction29)^2) 
+
+#Fold 3
+fit3D9 <- lm(Y_train ~ poly(X_train, 9), data = Train3) 
+prediction39 <- predict(fit3D9, Test3) 
+MSEFOLD3D9 <- mean((Test3$Y_train - prediction39)^2) 
+
+#Fold 4
+fit4D9 <- lm(Y_train ~ poly(X_train, 9), data = Train4) 
+prediction49 <- predict(fit4D9, Test4) 
+MSEFOLD4D9 <- mean((Test4$Y_train - prediction49)^2) 
+
+#Fold 5
+fit5D9 <- lm(Y_train ~ poly(X_train, 9), data = Train5) 
+prediction59 <- predict(fit5D9, Test5) 
+MSEFOLD5D9 <- mean((Test5$Y_train - prediction59)^2) 
+
+AVG_MSE_D9 <- mean(MSEFOLD1D9+ MSEFOLD2D9+ MSEFOLD3D9+ MSEFOLD4D9+ MSEFOLD5D9)
+
+###D=10####
+#Fold 1
+fit1D10 <- lm(Y_train ~ poly(X_train, 10), data = Train1) 
+prediction110 <- predict(fit1D10, Test1)
+MSEFOLD1D10 <- mean((Test1$Y_train - prediction110)^2) 
+
+#Fold 2
+fit2D10 <- lm(Y_train ~ poly(X_train, 10), data = Train2) 
+prediction210 <- predict(fit2D10, Test2) 
+MSEFOLD2D10 <- mean((Test2$Y_train - prediction210)^2) 
+
+#Fold 3
+fit3D10 <- lm(Y_train ~ poly(X_train, 10), data = Train3) 
+prediction310 <- predict(fit3D10, Test3) 
+MSEFOLD3D10 <- mean((Test3$Y_train - prediction310)^2) 
+
+#Fold 4
+fit4D10 <- lm(Y_train ~ poly(X_train, 10), data = Train4) 
+prediction410 <- predict(fit4D10, Test4) 
+MSEFOLD4D10 <- mean((Test4$Y_train - prediction410)^2) 
+
+#Fold 5
+fit5D10 <- lm(Y_train ~ poly(X_train, 10), data = Train5) 
+prediction510 <- predict(fit5D10, Test5) 
+MSEFOLD5D10 <- mean((Test5$Y_train - prediction510)^2) 
+
+AVG_MSE_D10 <- mean(MSEFOLD1D10+ MSEFOLD2D10+ MSEFOLD3D10+ MSEFOLD4D10+ MSEFOLD5D10)
+
+#Plotting CV Error as a function of D
+D <- c(1,2,3,4,5,6,7,8,9,10)
+Avg_MSE <-c(AVG_MSE_D1,AVG_MSE_D2,AVG_MSE_D3,AVG_MSE_D4,AVG_MSE_D5,AVG_MSE_D6,AVG_MSE_D7,AVG_MSE_D8,AVG_MSE_D9,AVG_MSE_D10)
+
+plot(D, Avg_MSE, type = "o", xlab = "Degree of Polynomial", ylab = "CV Error")
+# Find the index of the minimum value of y
+min_index <- which.min(Avg_MSE)
+# Add a vertical line at the D corresponding to the minimum avg mse
+abline(v = D[min_index], col = "red", lty = 2)
+
+print("As seen from the error plot, the average MSE is lowest at D=10 which we will choose as the optimal D.")
+
+
+```
+```{r}
+#4use the entire training set for training the models.
+#Compute the performance of the 10 models on the test set. 
+#Plot the test MSE and training MSE as a function of d. Comment on your observations.
+
+#train and test data frames
+train <- data.frame(X_train, Y_train)
+test <- data.frame(X_test, Y_test)
+
+#renaming the columns 
+colnames(train) <- c("X", "Y")
+colnames(test) <- c("X", "Y")
+
+#D=1
+Model1 <- lm(Y ~ poly(X, 1), data = train)
+prediction_train <- predict(Model1, newdata = train)
+predictions_test <- predict(Model1, newdata = test)
+# Calculate the mean squared error
+train_mse <- mean((prediction_train- train$Y)^2)
+test_mse <- mean((predictions_test - test$Y)^2)
+
+
+#D=2
+Model2 <- lm(Y ~ poly(X, 2), data = train)
+prediction_train2 <- predict(Model2, newdata = train)
+predictions_test2 <- predict(Model2, newdata = test)
+# Calculate the mean squared error
+train_mse2 <- mean((prediction_train2- train$Y)^2)
+test_mse2 <- mean((predictions_test2 - test$Y)^2)
+
+#D=3
+Model3 <- lm(Y ~ poly(X, 3), data = train)
+prediction_train3 <- predict(Model3, newdata = train)
+predictions_test3 <- predict(Model3, newdata = test)
+# Calculate the mean squared error
+train_mse3 <- mean((prediction_train3- train$Y)^2)
+test_mse3 <- mean((predictions_test3 - test$Y)^2)
+
+#D=4
+Model4 <- lm(Y ~ poly(X, 4), data = train)
+prediction_train4 <- predict(Model4, newdata = train)
+predictions_test4 <- predict(Model4, newdata = test)
+# Calculate the mean squared error
+train_mse4 <- mean((prediction_train4- train$Y)^2)
+test_mse4 <- mean((predictions_test4 - test$Y)^2)
+
+#D=5
+Model5 <- lm(Y ~ poly(X, 5), data = train)
+prediction_train5 <- predict(Model5, newdata = train)
+predictions_test5 <- predict(Model5, newdata = test)
+# Calculate the mean squared error
+train_mse5 <- mean((prediction_train5- train$Y)^2)
+test_mse5 <- mean((predictions_test5 - test$Y)^2)
+
+#D=6
+Model6 <- lm(Y ~ poly(X, 6), data = train)
+prediction_train6 <- predict(Model6, newdata = train)
+predictions_test6 <- predict(Model6, newdata = test)
+# Calculate the mean squared error
+train_mse6 <- mean((prediction_train6- train$Y)^2)
+test_mse6 <- mean((predictions_test6 - test$Y)^2)
+
+#D=7
+Model7 <- lm(Y ~ poly(X, 7), data = train)
+prediction_train7 <- predict(Model7, newdata = train)
+predictions_test7 <- predict(Model7, newdata = test)
+# Calculate the mean squared error
+train_mse7 <- mean((prediction_train7- train$Y)^2)
+test_mse7 <- mean((predictions_test7 - test$Y)^2)
+
+#D=8
+Model8 <- lm(Y ~ poly(X, 8), data = train)
+prediction_train8 <- predict(Model8, newdata = train)
+predictions_test8 <- predict(Model8, newdata = test)
+# Calculate the mean squared error
+train_mse8 <- mean((prediction_train8- train$Y)^2)
+test_mse8 <- mean((predictions_test8 - test$Y)^2)
+
+#D=9
+Model9 <- lm(Y ~ poly(X, 9), data = train)
+prediction_train9 <- predict(Model9, newdata = train)
+predictions_test9 <- predict(Model9, newdata = test)
+# Calculate the mean squared error
+train_mse9 <- mean((prediction_train9- train$Y)^2)
+test_mse9 <- mean((predictions_test9 - test$Y)^2)
+
+
+#D=10
+Model10 <- lm(Y ~ poly(X, 10), data = train)
+prediction_train10 <- predict(Model10, newdata = train)
+predictions_test10 <- predict(Model10, newdata = test)
+# Calculate the mean squared error
+train_mse10 <- mean((prediction_train10- train$Y)^2)
+test_mse10 <- mean((predictions_test10 - test$Y)^2)
+
+D <- c(1,2,3,4,5,6,7,8,9,10)
+trainmse <- c(train_mse,train_mse2,train_mse3,train_mse4,train_mse5,train_mse6,train_mse7,train_mse8,train_mse9,train_mse10)
+testmse <- c(test_mse,test_mse2,test_mse3,test_mse4,test_mse5,test_mse6,test_mse7,test_mse8,test_mse9,test_mse10)
+
+#plot train mse
+plot(D, trainmse, type = "o", xlab = "Degree of Polynomial", ylab = "training MSE")
+# Find the index of the minimum value of y
+min_index <- which.min(trainmse)
+# Add a vertical line at the D corresponding to the minimum avg mse
+abline(v = D[min_index], col = "red", lty = 2)
+
+#plot test mse
+plot(D, testmse, type = "o", xlab = "Degree of Polynomial", ylab = "test MSE")
+# Find the index of the minimum value of y
+min_index <- which.min(testmse)
+# Add a vertical line at the D corresponding to the minimum avg mse
+abline(v = D[min_index], col = "red", lty = 2)
+
+print("As seen from the plots, the train MSE is lowest for D=10 and the test MSE is lowest for D=4. This is expected as for training data or in sample data, we would expect the MSE to keep going down for every added variable. This model (D=10) would not necessarily perform best with out of sample test data, hinting that our train data might have overfit the model.")
+```
+#Bias Variance Tradeoff 
+```{r}
+#Bias Variance Tradeoff
+
+library(ggplot2)
+
+set.seed(22) # Set the seed for reproducibility
+n <- 100
+
+x <- runif(n, min = 0, max = 1)
+simulations <- 1000
+models <- 10
+
+bias <- numeric(models)
+variance <- numeric(models)
+predictions <- matrix(NA, nrow = simulations, ncol = models)
+
+for (i in 1:simulations) {
+  y <- 3 * x^5 + 2 * x^2 + rnorm(n, mean = 0, sd = 0.5)
+  for (j in 1:models) {
+    model <- lm(y ~ poly(x, j))
+    predictions[i, j] <- predict(model, newdata = data.frame(x = 1.01))
+  }
+}
+
+for (j in 1:models) {
+  mean_prediction <- mean(predictions[, j])
+  bias[j] <- (mean_prediction - (3 * 1.01^5 + 2 * 1.01^2))^2
+  variance[j] <- var(predictions[, j])
+}
+
+ggplot() + 
+  geom_line(aes(x=c(1:10),y=bias),color='red', linewidth=1.5) + 
+  geom_line(aes(x=c(1:10),y=variance),color='blue', linewidth=1.5) + 
+  ylab('Values') + 
+  xlab('d') + 
+  ggtitle("Bias(RED) and Variance(BLUE) for Different Polynomial Degrees") +
+  scale_color_manual(name="", values=c("red"="red", "blue"="blue"), labels=c("Bias", "Variance")) +
+  theme(legend.position = "bottom") +
+  guides(color = guide_legend(title.position = "top"))
+
+
+```
+
+
+```{r}
+#3 BONUS
+#A
+set.seed(22) # Set the seed for reproducibility
+n <- 100
+
+x <- runif(n, min = 0, max = 10)
+simulations <- 1000
+models <- 10
+
+bias <- numeric(models)
+variance <- numeric(models)
+predictions <- matrix(NA, nrow = simulations, ncol = models)
+
+for (i in 1:simulations) {
+  y <- 3 * x^5 + 2 * x^2 + rnorm(n, mean = 0, sd = 0.5)
+  for (j in 1:models) {
+    model <- lm(y ~ poly(x, j))
+    predictions[i, j] <- predict(model, newdata = data.frame(x = 1.01))
+  }
+}
+
+for (j in 1:models) {
+  mean_prediction <- mean(predictions[, j])
+  bias[j] <- (mean_prediction - (3 * 1.01^5 + 2 * 1.01^2))^2
+  variance[j] <- var(predictions[, j])
+}
+
+ggplot() + 
+  geom_line(aes(x=c(1:10),y=bias),color='red', linewidth=1.5) + 
+  geom_line(aes(x=c(1:10),y=variance),color='blue', linewidth=1.5) + 
+  ylab('Values') + 
+  xlab('d') + 
+  ggtitle("Bias(RED) and Variance(BLUE) for Different Polynomial Degrees") +
+  scale_color_manual(name="", values=c("red"="red", "blue"="blue"), labels=c("Bias", "Variance")) +
+  theme(legend.position = "bottom") +
+  guides(color = guide_legend(title.position = "top"))
+
+
+```
+
+```{r}
+#B
+set.seed(22) # Set the seed for reproducibility
+n <- 100
+
+x <- runif(n, min = 0, max = 1)
+simulations <- 1000
+models <- 10
+
+bias <- numeric(models)
+variance <- numeric(models)
+predictions <- matrix(NA, nrow = simulations, ncol = models)
+
+for (i in 1:simulations) {
+  y <- 3 * x^5 + 2 * x^2 + rnorm(n, mean = 0, sd = 0.5)
+  for (j in 1:models) {
+    model <- lm(y ~ poly(x, j))
+    predictions[i, j] <- predict(model, newdata = data.frame(x = 1.01))
+  }
+}
+
+for (j in 1:models) {
+  mean_prediction <- mean(predictions[, j])
+  bias[j] <- (mean_prediction - (3 * (-0.5)^5 + 2 * (-0.5)^2))^2
+  variance[j] <- var(predictions[, j])
+}
+
+ggplot() + 
+  geom_line(aes(x=c(1:10),y=bias),color='red', linewidth=1.5) + 
+  geom_line(aes(x=c(1:10),y=variance),color='blue', linewidth=1.5) + 
+  ylab('Values') + 
+  xlab('d') + 
+  ggtitle("Bias(RED) and Variance(BLUE) for Different Polynomial Degrees") +
+  scale_color_manual(name="", values=c("red"="red", "blue"="blue"), labels=c("Bias", "Variance")) +
+  theme(legend.position = "bottom") +
+  guides(color = guide_legend(title.position = "top"))
+
+
+
+```
+```{r}
+#INTERPRETATIONS
+#In the first part of this section (Bias Variance Tradeoff), since all our x variables come from a uniform distribution where Xi ∈ U[0,1], when we are predicting 1.01, it is essentially a out of sample prediction. As d increases, our bias is seen to move towards 0 and our variance steadily increases. With more variables as d increases, we are over fitting the model wherein we are minimizing the RSS hence decreasing the bias. However, Variance increases with over fitting because the model is becoming too complex and is fitting to the noise in the training data rather than the underlying pattern. This leads to a model that is highly sensitive to small fluctuations in the training data, causing the model to have high variance. Since it is not able to generalize well on unseen data(1.01),the variance is high. We see that, as model complexity increases (from d=1 to 10), the issue of over fitting also increases, hence variance increases.
+#For models where d is small, the issue of under fitting can be seen where model is too simple and does not fit the training data well. This results in high bias.
+
+#For the A part of the bonus question, since X is being sampled such that Xi ∈ U[0,1], the point x=1.01 is in sample data, which the training model has seen before. Hence variance is 0 as the model is able to correctly predict the  X. The bias also tends to 0 with increasing d for same reasons outlined previously.
+
+
+#To avoid over fitting, we can use cross validation to determine a optimal d value. This can help to prevent over fitting by giving a more accurate assessment of the model's performance on unseen data. We can also use regularization techniques such as lasso to determine the right model.  Increasing the size (n) of the training set can also help to reduce over fitting, as the model will have more data to learn from and will be less likely to fit to the noise in the training data.
+
+
+
+```
+
+
+
+
