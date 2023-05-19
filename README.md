@@ -21,10 +21,10 @@ This part explores the bias-variance tradeoff as model complexity increases. We 
 ### Steps to reproduce:
 1. **Training Dataset Generation**: Generate 1000 training datasets using the same function form as in Part A but with n = 100. For each simulated training dataset, train 10 different models for degrees d ∈ [1, ..., 10]. Store and compute the prediction for x = 1.01.
 2. **Bias and Variance Calculation**: Calculate the bias and variance of the prediction value for each model. Plot the bias and variance as a function of d.
-3. **: Consider the following cases and analyze their impact on bias and variance:
+3. **: Considering the following cases and analyze their impact on bias and variance:
    - (a) Plot the bias and variance when sampling from Xi ∈ U [0, 10] instead of U [0, 1].
    - (b) Plot the bias and variance when using the test point x = -0.5 instead of x = 1.01.
-   Analyze the plots and discuss the implications of the observed trends. Can we mitigate any of the issues? Provide explanations and insights.
+   Analyze the plots and discuss the implications of the observed trends. 
 
 ## Conclusion
 
